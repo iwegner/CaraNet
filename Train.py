@@ -43,8 +43,8 @@ def test(model, path):
     #####                                             #####
     
     model.eval()
-    image_root = '{}/images/'.format(data_path)
-    gt_root = '{}/masks/'.format(data_path)
+    image_root = os.path.abspath(os.path.join(data_path, "images"))
+    gt_root = os.path.abspath(os.path.join(data_path, "masks"))
     test_loader = test_dataset(image_root, gt_root, 352)
     b=0.0
     print('[test_size]',test_loader.size)
@@ -123,7 +123,7 @@ def train(train_loader, model, optimizer, epoch, test_path):
                   ' lateral-5: {:0.4f}], lateral-3: {:0.4f}], lateral-2: {:0.4f}], lateral-1: {:0.4f}]'.
                   format(datetime.now(), epoch, opt.epoch, i, total_step,
                           loss_record5.show(),loss_record3.show(),loss_record2.show(),loss_record1.show()))
-    save_path = 'snapshots/{}/'.format(opt.train_save)
+    save_path = os.path.abspath(os.path.join(test_path, "..", "snapshots", opt.train_save))
     os.makedirs(save_path, exist_ok=True)
     
     
@@ -149,8 +149,9 @@ def train(train_loader, model, optimizer, epoch, test_path):
             fp = open('log/best.txt','r')
             best = fp.read()
             fp.close()
-            torch.save(model.state_dict(), save_path + 'CaraNet-best.pth' )
-            print('[Saving Snapshot:]', save_path + 'CaraNet-best.pth',meandice,'[best:]',best)
+            save_path_result = os.path.join(save_path, 'CaraNet-best.pth')
+            torch.save(model.state_dict(), save_path_result)
+            print('[Saving Snapshot:]', save_path_result, meandice,'[best:]',best)
             
 
 if __name__ == '__main__':
@@ -184,10 +185,10 @@ if __name__ == '__main__':
                         default=50, help='every n epochs decay learning rate')
     
     parser.add_argument('--train_path', type=str,
-                        default='./TrainDataset/', help='path to train dataset')
+                        default=os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "TrainDataset")), help='path to train dataset')
     
     parser.add_argument('--test_path', type=str,
-                        default='./TestDataset/CVC-300/' , help='path to testing Kvasir dataset')
+                        default=os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "TestDataset", "CVC-300")) , help='path to testing Kvasir dataset')
     
     parser.add_argument('--train_save', type=str,
                         default='CaraNet-best')
@@ -210,8 +211,8 @@ if __name__ == '__main__':
         optimizer = torch.optim.SGD(params, opt.lr, weight_decay = 1e-4, momentum = 0.9)
         
     print(optimizer)
-    image_root = '{}/image/'.format(opt.train_path)
-    gt_root = '{}/mask/'.format(opt.train_path)
+    image_root = os.path.join(opt.train_path, "images")
+    gt_root = os.path.join(opt.train_path, "masks")
 
     train_loader = get_loader(image_root, gt_root, batchsize=opt.batchsize, trainsize=opt.trainsize, augmentation = opt.augmentation)
     total_step = len(train_loader)

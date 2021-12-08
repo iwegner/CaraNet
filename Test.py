@@ -18,10 +18,10 @@ parser.add_argument('--pth_path', type=str, default='./snapshots/CaraNet-best/Ca
 
 for _data_name in ['CVC-300', 'CVC-ClinicDB', 'Kvasir', 'CVC-ColonDB', 'ETIS-LaribPolypDB']:
     ##### put ur data_path here #####
-    data_path = 'D:/CaraNet/TestDataset/{}/'.format(_data_name)
+    data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "TestDataset", _data_name))
     #####                       #####
     
-    save_path = './results/CaraNet/{}/'.format(_data_name)
+    save_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "results", _data_name))
     opt = parser.parse_args()
     model = caranet()
     weights = torch.load(opt.pth_path)
