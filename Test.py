@@ -7,6 +7,9 @@ import os, argparse
 #from scipy import misc
 # so change to
 import imageio
+from skimage import color
+#from skimage.filters import 
+import matplotlib.pyplot as plt
 
 #from lib.HarDMSEG import HarDMSEG
 from utils.dataloader import test_dataset
@@ -21,7 +24,8 @@ parser.add_argument('--pth_path', type=str, default=os.path.abspath(os.path.join
 
 
 
-for _data_name in ['CVC-300', 'CVC-ClinicDB', 'Kvasir', 'CVC-ColonDB', 'ETIS-LaribPolypDB']:
+#for _data_name in ['CVC-300', 'CVC-ClinicDB', 'Kvasir', 'CVC-ColonDB', 'ETIS-LaribPolypDB', 'KvasirCapsule-SEG']:
+for _data_name in ['KvasirCapsule-SEG']:
     ##### put ur data_path here #####
     data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "TestDataset", _data_name))
     #####                       #####
@@ -68,9 +72,26 @@ for _data_name in ['CVC-300', 'CVC-ClinicDB', 'Kvasir', 'CVC-ColonDB', 'ETIS-Lar
         res = F.upsample(res, size=gt.shape, mode='bilinear', align_corners=False)
         res = res.sigmoid().data.cpu().numpy().squeeze()
         res = (res - res.min()) / (res.max() - res.min() + 1e-8)
-        
-        temp_save_path = os.path.join(save_path, name)
+
+        # # create a histogram of the blurred grayscale image
+        # histogram, bin_edges = np.histogram(res, bins=256, range=(0.0, 1.0))
+        # plt.plot(bin_edges[0:-1], histogram)
+        # plt.title("Grayscale Histogram")
+        # plt.xlabel("grayscale value")
+        # plt.ylabel("pixels")
+        # plt.xlim(0, 1.0)
+        # plt.show()
+        # plt.savefig(os.path.join(save_path,name + "_histo.png"))
+
+        # res now is inbetween 0 amd 1
+        # binary thresholding
+        res = res > 0.1
+
+        res = res * 255
+        res = res.astype(np.uint8)
         
         # deprecated!
         #misc.imsave(temp_save_path, res)
-        imageio.imwrite(temp_save_path, res)
+        imageio.imwrite(os.path.join(save_path, name), res)
+        print (" saved image " + name)
+        
