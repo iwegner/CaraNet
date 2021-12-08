@@ -10,8 +10,8 @@ import cv2
 
 class test_dataset:
     def __init__(self, image_root, gt_root):
-        self.images = [image_root + f for f in os.listdir(image_root) if f.endswith('.jpg') or f.endswith('.png')]
-        self.gts = [gt_root + f for f in os.listdir(gt_root) if f.endswith('.jpg') or f.endswith('.png')]
+        self.images = [image_root + "\\" + f for f in os.listdir(image_root) if f.endswith('.jpg') or f.endswith('.png')]
+        self.gts = [gt_root + "\\" + f for f in os.listdir(gt_root) if f.endswith('.jpg') or f.endswith('.png')]
         self.images = sorted(self.images)
         self.gts = sorted(self.gts)
         self.transform = transforms.ToTensor()
@@ -23,7 +23,8 @@ class test_dataset:
         image = self.rgb_loader(self.images[self.index])
         image = self.transform(image).unsqueeze(0)
         gt = self.binary_loader(self.gts[self.index])
-        name = self.images[self.index].split('/')[-1]
+        #name = self.images[self.index].split('/')[-1]
+        name = self.images[self.index].split("\\")[-1]
         if name.endswith('.jpg'):
             name = name.split('.jpg')[0] + '.png'
         self.index += 1
@@ -48,8 +49,8 @@ if __name__ == '__main__':
         ###########################################################
         # image_root = 'D:/HarDNet-MSEG-master/results/HarDMSEG/Kvasir_SEG_Validation_120/'
         # gt_root = 'D:/HarDNet-MSEG-master/Kvasir_SEG_Validation_120/mask/'
-        image_root = 'D:/HarDNet-MSEG-master/results/HarDMSEG/CVC-300/'
-        gt_root = 'D:/HarDNet-MSEG-master/TestDataset/CVC-300/masks/'
+        image_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "TestDataset", "KvasirCapsule-SEG", "images"))
+        gt_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "TestDataset", "KvasirCapsule-SEG", "masks"))
         test_loader = test_dataset(image_root, gt_root)
         b=0.0
     for i in range(test_loader.size):
