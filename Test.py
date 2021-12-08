@@ -2,17 +2,22 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 import os, argparse
-from scipy import misc
-from lib.HarDMSEG import HarDMSEG
+
+# deprecated
+#from scipy import misc
+# so change to
+import imageio
+
+#from lib.HarDMSEG import HarDMSEG
 from utils.dataloader import test_dataset
-from CFP_Res2Net import cfpnet_res2net
+#from CFP_Res2Net import cfpnet_res2net
 from collections import OrderedDict
-from pranet import PraNet
+#from pranet import PraNet
 from CaraNet import caranet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--testsize', type=int, default=352, help='testing size')
-parser.add_argument('--pth_path', type=str, default='./snapshots/CaraNet-best/CaraNet-best.pth')
+parser.add_argument('--pth_path', type=str, default=os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "TestDataset", "snapshots", "CaraNet-bestCaraNet-best.pth")))
 
 
 
@@ -47,8 +52,8 @@ for _data_name in ['CVC-300', 'CVC-ClinicDB', 'Kvasir', 'CVC-ColonDB', 'ETIS-Lar
 
 
     os.makedirs(save_path, exist_ok=True)
-    image_root = '{}/images/'.format(data_path)
-    gt_root = '{}/masks/'.format(data_path)
+    image_root = os.path.join(data_path, "images")
+    gt_root = os.path.join(data_path, "masks")
     test_loader = test_dataset(image_root, gt_root, opt.testsize)
 
     for i in range(test_loader.size):
@@ -64,4 +69,8 @@ for _data_name in ['CVC-300', 'CVC-ClinicDB', 'Kvasir', 'CVC-ColonDB', 'ETIS-Lar
         res = res.sigmoid().data.cpu().numpy().squeeze()
         res = (res - res.min()) / (res.max() - res.min() + 1e-8)
         
-        misc.imsave(save_path+name, res)
+        temp_save_path = os.path.join(save_path, name)
+        
+        # deprecated!
+        #misc.imsave(temp_save_path, res)
+        imageio.imwrite(temp_save_path, res)
