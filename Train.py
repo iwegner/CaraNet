@@ -149,7 +149,7 @@ def train(train_loader, model, optimizer, epoch, test_path):
             fp = open('log/best.txt','r')
             best = fp.read()
             fp.close()
-            save_path_result = os.path.join(save_path, 'CaraNet-best.pth')
+            save_path_result = os.path.join(save_path, "CaraNet-best.pth")
             torch.save(model.state_dict(), save_path_result)
             print('[Saving Snapshot:]', save_path_result, meandice,'[best:]',best)
             
