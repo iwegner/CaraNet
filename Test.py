@@ -26,8 +26,8 @@ parser.add_argument('--pth_path', type=str, default=os.path.abspath(os.path.join
 
 
 
-#for _data_name in ['CVC-300', 'CVC-ClinicDB', 'Kvasir', 'CVC-ColonDB', 'ETIS-LaribPolypDB', 'KvasirCapsule-SEG']:
-for _data_name in ['KvasirCapsule-SEG']:
+for _data_name in ['CVC-300', 'CVC-ClinicDB', 'Kvasir', 'CVC-ColonDB', 'ETIS-LaribPolypDB', 'KvasirCapsule-SEG']:
+#for _data_name in ['KvasirCapsule-SEG']:
     ##### put ur data_path here #####
     data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "TestDataset", _data_name))
     #####                       #####
@@ -76,8 +76,13 @@ for _data_name in ['KvasirCapsule-SEG']:
         # load orig color data         
         # data loader returns name as png... convert back to jpg
         orig_img_name = name
-        if orig_img_name.endswith('.png'):
-            orig_img_name = orig_img_name.split('.png')[0] + '.jpg'
+        if not os.path.isfile(os.path.join(image_root, orig_img_name)):
+            if orig_img_name.endswith('.png'):
+                orig_img_name = orig_img_name.split('.png')[0] + '.jpg'
+        
+        if not os.path.isfile(os.path.join(image_root, orig_img_name)):
+            print (" can't fild file " + os.path.join(image_root, orig_img_name))
+
         orig_image = cv2.imread(os.path.join(image_root, orig_img_name))
         # transfering that to image
         for c in gt_contours:
@@ -112,6 +117,7 @@ for _data_name in ['KvasirCapsule-SEG']:
         plt.xlim(0, 1.0)
         #plt.show()
         plt.savefig(os.path.join(save_path,name + "_histo.png"))
+        plt.clf()
 
         # res now is inbetween 0 amd 1
         # use binary thresholding to generate a contour
