@@ -132,24 +132,32 @@ def train(train_loader, model, optimizer, epoch, test_path):
     
     if (epoch+1) % 1 == 0:
         meandice = test(model,test_path)
-        
-        fp = open('log/log.txt','a')
+        log_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "log", "log.txt"))
+        best_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "log", "best.txt"))
+
+        fp = open(log_file_path,'a')
         fp.write(str(meandice)+'\n')
         fp.close()
         
-        fp = open('log/best.txt','r')
+        # issue here when using a model for initialization and the best file is not available...
+        if not os.path.isfile(best_file_path):
+            fp = open(best_file_path,'w')
+            fp.write("0.0")
+            fp.close()
+
+        fp = open(best_file_path,'r')
         best = fp.read()
         fp.close()
         
         if meandice > float(best):
-            fp = open('log/best.txt','w')
+            fp = open(best_file_path,'w')
             fp.write(str(meandice))
             fp.close()
             # best = meandice
-            fp = open('log/best.txt','r')
+            fp = open(best_file_path,'r')
             best = fp.read()
             fp.close()
-            save_path_result = os.path.join(save_path, "CaraNet-best.pth")
+            save_path_result = os.path.join(save_path, opt.train_save + ".pth")
             torch.save(model.state_dict(), save_path_result)
             print('[Saving Snapshot:]', save_path_result, meandice,'[best:]',best)
             
@@ -192,16 +200,29 @@ if __name__ == '__main__':
     
     parser.add_argument('--train_save', type=str,
                         default='CaraNet-best')
+
+    parser.add_argument('--resume_training', type=bool,
+                        default=True, help='choose true to use previous model as initialization')
+
     
     opt = parser.parse_args()
 
     # ---- build models ----
+    model = caranet()
+
+    if opt.epoch:
+        #injecting pretrained model
+        temp_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "TestDataset", "snapshots", opt.train_save, opt.train_save + ".pth"))
+        model.load_state_dict(torch.load(temp_path))
+        print ("Using previously trained model from " + temp_path + " as initialization.")
+
     torch.cuda.set_device(0)  # set your gpu device
-    model = caranet().cuda()
+    model.cuda()
     # ---- flops and params ----
     # from utils.utils import CalParams
     # x = torch.randn(1, 3, 352, 352).cuda()
     # CalParams(model, x)
+    
 
     params = model.parameters()
     

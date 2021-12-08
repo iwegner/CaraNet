@@ -5,6 +5,9 @@ import torchvision.transforms as transforms
 import numpy as np
 import random
 import torch
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+import cv2
 
 
 class PolypDataset(data.Dataset):
@@ -23,49 +26,83 @@ class PolypDataset(data.Dataset):
         self.size = len(self.images)
         if self.augmentations == True:
             print('Using RandomRotation, RandomFlip')
-            self.img_transform = transforms.Compose([
-                transforms.RandomRotation(90, resample=False, expand=False, center=None),
-                transforms.RandomVerticalFlip(p=0.5),
-                transforms.RandomHorizontalFlip(p=0.5),
-                transforms.Resize((self.trainsize, self.trainsize)),
-                transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406],
-                                     [0.229, 0.224, 0.225])])
-            self.gt_transform = transforms.Compose([
-                transforms.RandomRotation(90, resample=False, expand=False, center=None),
-                transforms.RandomVerticalFlip(p=0.5),
-                transforms.RandomHorizontalFlip(p=0.5),
-                transforms.Resize((self.trainsize, self.trainsize)),
-                transforms.ToTensor()])
+
+            self.train_augmentation = A.Compose([
+                A.Resize(self.trainsize, self.trainsize),
+                A.Rotate(limit=(-45, 45)),
+                A.VerticalFlip(p=0.5),
+                A.HorizontalFlip(p=0.5),
+                A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
+                A.MultiplicativeNoise(),
+                A.GaussNoise(),
+                A.ImageCompression(),
+                A.OneOf([
+                    A.MotionBlur(p=0.2),
+                    A.MedianBlur(blur_limit=3, p=0.2),
+                    A.Blur(blur_limit=3, p=0.1)],
+                    p=0.2),
+                A.Normalize(),
+                ToTensorV2()
+            ])
+
+            # self.img_transform = transforms.Compose([
+            #     transforms.RandomRotation(90, resample=False, expand=False, center=None),
+            #     transforms.RandomVerticalFlip(p=0.5),
+            #     transforms.RandomHorizontalFlip(p=0.5),
+            #     transforms.Resize((self.trainsize, self.trainsize)),
+            #     transforms.ToTensor(),
+            #     transforms.Normalize([0.485, 0.456, 0.406],
+            #                          [0.229, 0.224, 0.225])])
+            # self.gt_transform = transforms.Compose([
+            #     transforms.RandomRotation(90, resample=False, expand=False, center=None),
+            #     transforms.RandomVerticalFlip(p=0.5),
+            #     transforms.RandomHorizontalFlip(p=0.5),
+            #     transforms.Resize((self.trainsize, self.trainsize)),
+            #     transforms.ToTensor()])
             
         else:
             print('no augmentation')
-            self.img_transform = transforms.Compose([
-                transforms.Resize((self.trainsize, self.trainsize)),
-                transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406],
-                                     [0.229, 0.224, 0.225])])
+
+            self.train_augmentation = A.Compose([
+                A.Resize(self.trainsize, self.trainsize),
+                A.Normalize(),
+                ToTensorV2()
+            ])
+            # self.img_transform = transforms.Compose([
+            #     transforms.Resize((self.trainsize, self.trainsize)),
+            #     transforms.ToTensor(),
+            #     transforms.Normalize([0.485, 0.456, 0.406],
+            #                          [0.229, 0.224, 0.225])])
             
-            self.gt_transform = transforms.Compose([
-                transforms.Resize((self.trainsize, self.trainsize)),
-                transforms.ToTensor()])
+            # self.gt_transform = transforms.Compose([
+            #     transforms.Resize((self.trainsize, self.trainsize)),
+            #     transforms.ToTensor()])
             
 
     def __getitem__(self, index):
         
-        image = self.rgb_loader(self.images[index])
-        gt = self.binary_loader(self.gts[index])
+        #image = self.rgb_loader(self.images[index])
+        image = cv2.imread(self.images[index])
+        #gt = self.binary_loader(self.gts[index])
+        gt = cv2.imread(self.gts[index],cv2.IMREAD_GRAYSCALE)
+        gt = gt / 255.0
+
         
         seed = np.random.randint(2147483647) # make a seed with numpy generator 
         random.seed(seed) # apply this seed to img tranfsorms
         torch.manual_seed(seed) # needed for torchvision 0.7
-        if self.img_transform is not None:
-            image = self.img_transform(image)
-            
+        # if self.img_transform is not None:
+        #     image = self.img_transform(image)
+
+        image_aug = self.train_augmentation(image= image, mask=gt)
+        image = image_aug["image"]
+        gt = image_aug["mask"]
+        gt = gt[None,:]
+
         random.seed(seed) # apply this seed to img tranfsorms
         torch.manual_seed(seed) # needed for torchvision 0.7
-        if self.gt_transform is not None:
-            gt = self.gt_transform(gt)
+        # if self.gt_transform is not None:
+        #     gt = self.gt_transform(gt)
         return image, gt
 
     def filter_files(self):
