@@ -27,9 +27,11 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# polyp segmentation custom
+# custom
 data/
 *.pt
+log.txt
+best.txt
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

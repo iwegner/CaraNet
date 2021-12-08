@@ -84,9 +84,10 @@ for _data_name in ['KvasirCapsule-SEG']:
         # plt.savefig(os.path.join(save_path,name + "_histo.png"))
 
         # res now is inbetween 0 amd 1
-        # binary thresholding
-        res = res > 0.1
+        # binary thresholding doesn't make sense
+        # res = res > 0.1
 
+        # shift to 0-255 8 bit
         res = res * 255
         res = res.astype(np.uint8)
         
