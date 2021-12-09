@@ -22,19 +22,32 @@ from CaraNet import caranet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--testsize', type=int, default=352, help='testing size')
-parser.add_argument('--pth_path', type=str, default=os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "TestDataset", "snapshots", "CaraNet-bestCaraNet-best.pth")))
+parser.add_argument('--pth_path', type=str, default=os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "TestDataset", "snapshots", "CaraNet-best", "AlbumentationCaraNet","AlbumentationCaraNet_CaraNet-best.pth")))
+parser.add_argument('--result_threshold', type=float, default=0.35, help='value used for thresholding the result to superimpose the outline result on the original image')
+parser.add_argument('--data_path', type=str, default=os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "TestDataset")), help='path to reach the test data')
+parser.add_argument('--result_path', type=str, default=os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "results")), help='path to store the results to')
 
 
 
 for _data_name in ['CVC-300', 'CVC-ClinicDB', 'Kvasir', 'CVC-ColonDB', 'ETIS-LaribPolypDB', 'KvasirCapsule-SEG']:
 #for _data_name in ['KvasirCapsule-SEG']:
-    ##### put ur data_path here #####
-    data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "TestDataset", _data_name))
-    #####                       #####
-    
-    save_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "data", "results", _data_name))
+
     opt = parser.parse_args()
+    
+    ##### put your data_path here #####
+    data_path = os.path.abspath(os.path.join(opt.data_path, _data_name))
+    #####                       #####
+    save_path = os.path.abspath(os.path.join(opt.result_path, _data_name))
+    
+    print ("Starting test on "
+            + _data_name 
+            + " with result-threshold="
+            + str(opt.result_threshold)
+            + " and test size="
+            + str(opt.testsize) + "x" + str(opt.testsize))
+
     model = caranet()
+    print("Loading model " + opt.pth_path)
     weights = torch.load(opt.pth_path)
     new_state_dict = OrderedDict()
 
@@ -121,7 +134,7 @@ for _data_name in ['CVC-300', 'CVC-ClinicDB', 'Kvasir', 'CVC-ColonDB', 'ETIS-Lar
 
         # res now is inbetween 0 amd 1
         # use binary thresholding to generate a contour
-        res_contour_img = res > 0.35
+        res_contour_img = res > opt.result_threshold
         # shift to 0-255 8 bit
         res_contour_img = res_contour_img * 255
         res_contour_img = res_contour_img.astype(np.uint8)
