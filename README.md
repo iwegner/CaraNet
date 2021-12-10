@@ -11,7 +11,9 @@ Topic of the the mini-project:
 **Automatic Polyp Segmentation in Colon Capsule Endoscopy**
 
 ## Approach
-As we could only find few test data on colon capsule endoscopy, we used cononoscopy training data and tried to modify teh training approach to adapt to colon capsule data.
+As we could only find few test data on colon capsule endoscopy, we used cononoscopy training data and tried to modify the training approach to adapt to colon capsule data.
+
+Test data was the one mentioned in [CaraNet](https://github.com/AngeLouCN/CaraNet)
 
 Results were tested on [Kvasir-capsule](https://github.com/simula/kvasir-capsule) data set which also contains masks which we used as ground truth. 
 The results were not satisfactory but our goal rather was to get familiar with the general workflow. We also tried [NanoNet](https://arxiv.org/pdf/2104.11138.pdf) and a [custom implementation](https://github.com/simongeek/CapsuleEndoscopy).
